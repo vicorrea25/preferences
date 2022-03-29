@@ -1,16 +1,13 @@
 package com.mercadopago.preferences.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.google.gson.Gson;
-import com.mercadopago.MercadoPago;
-import com.mercadopago.core.MPCredentials;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.preferences.auth.Authetication;
+import com.mercadopago.preferences.utils.MapUtils;
 import com.mercadopago.resources.Preference;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import spark.Request;
 import spark.Response;
 import java.util.*;
@@ -32,39 +29,19 @@ public class PreferenceImpl {
 
     public String create(Request request, Response response) throws Exception {
 
-        Map<String, Object> preferenceHashMap = getRequestMap(request);
-        String credentials = getAuth(request);
-        Preference preferenceEntity = HashMapToObjectPreference(preferenceHashMap);
+        Map<String, Object> preferenceMap = MapUtils.getRequestMap(request);
+        String credentials = Authetication.getAuth(request);
+        Preference preferenceEntity = (Preference) MapUtils.hashMapToObject(preferenceMap, Preference.class);
         preferenceEntity.setMarketplaceAccessToken(credentials);
         Preference savedPreference = savePreference(preferenceEntity);
+
         setReturn(savedPreference, response);
+
         return response.body();
 
     }
 
-    private String getAuth(Request request) throws MPException {
-        String clientId = request.headers("clientId");
-        String clientSecret = request.headers("clientSecret");
-
-        MercadoPago.SDK.setClientId(clientId);
-        MercadoPago.SDK.setClientSecret(clientSecret);
-
-        return MPCredentials.getAccessToken();
-
-    }
-
-    private void setReturn(Preference preferenceEntity, Response response) throws JsonProcessingException {
-        Gson json = new Gson();
-
-        response.body(json.toJson(preferenceEntity));
-
-//        //deixar mais generico
-//        response.status(200);
-
-    }
-
     private Preference savePreference(Preference preferenceEntity) throws MPException {
-        Preference.findById("123");
         return preferenceEntity.save();
     }
 
@@ -72,40 +49,56 @@ public class PreferenceImpl {
         return Preference.findById(id);
     }
 
-    private Preference HashMapToObjectPreference(Map<String, Object> params) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        Gson json = new Gson();
-
-        String HashMapToJson = mapper.writeValueAsString(params);
-
-        return json.fromJson(HashMapToJson, Preference.class);
-    }
-
-    public final ObjectMapper mapper = new ObjectMapper()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-
-    private Map<String, Object> getRequestMap(Request request) throws Exception {
-        String body = request.body();
-        if (body.length() == 0) {
-            return new TreeMap<>();
-        }
-        return mapper.readValue(body, new TypeReference<Map<String, Object>>() {
-        });
-    }
-
     public String getById(Request request, Response response) throws MPException, JsonProcessingException {
         Preference preference = new Preference();
-
         String id = request.params(":id");
 
         if(StringUtils.isBlank(id)) {
             throw new RuntimeException("Id nao informado");
         }
-        preference.setMarketplaceAccessToken(getAuth(request));
 
+        preference.setMarketplaceAccessToken(Authetication.getAuth(request));
         setReturn(getPreferenceById(id), response);
 
         return response.body();
+    }
+
+    private void setReturn(Preference preferenceEntity, Response response) throws JsonProcessingException {
+        Gson json = new Gson();
+
+        response.body(json.toJson(preferenceEntity));
+        response.type("application/json");
+
+//        //deixar mais generico
+//        response.status(200);
+    }
+
+    public Object update(Request request, Response response) throws Exception {
+        Map<String, Object> preferenceMap = MapUtils.getRequestMap(request);
+        String credentials = Authetication.getAuth(request);
+        Preference preferenceEntity = (Preference) MapUtils.hashMapToObject(preferenceMap, Preference.class);
+        preferenceEntity.setMarketplaceAccessToken(credentials);
+
+        Preference updatedPreference = updatePreference(preferenceEntity, request);
+
+        setReturn(updatedPreference, response);
+
+        return response.body();
+    }
+
+    private Preference updatePreference(Preference preferenceChanged, Request request) throws MPException {
+
+        if(StringUtils.isBlank(request.params(":id"))) {
+            throw new RuntimeException("Id nao informado");
+        }
+
+        Preference savedPreference = getPreferenceById(request.params(":id"));
+
+        if(savedPreference != null) {
+            BeanUtils.copyProperties(preferenceChanged, savedPreference, "idempotenceKey");
+            return savedPreference.update();
+        }
+
+        return new Preference();
     }
 }

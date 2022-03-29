@@ -3,8 +3,7 @@ package com.mercadopago.preferences.route;
 import com.mercadopago.preferences.service.impl.PreferenceImpl;
 import spark.servlet.SparkApplication;
 
-import static spark.Spark.get;
-import static spark.Spark.post;
+import static spark.Spark.*;
 
 public class Routes implements SparkApplication {
 
@@ -18,6 +17,8 @@ public class Routes implements SparkApplication {
 
         get(PATH_PREFERENCES.concat(":id"), (request, response) -> preferenceImpl.getById(request, response));
         //post(PATH_PREFERENCES.concat("create"), (request, response) -> new PreferenceImpl(request, response));
+
+        put(PATH_PREFERENCES.concat("/:id"), (request, response) -> preferenceImpl.update(request, response));
 
     };
 
