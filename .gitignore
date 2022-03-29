@@ -1,0 +1,29 @@
+/classes
+.DS_Store
+.settings
+/*.log
+/out/
+.gradle
+/build/
+build/
+.idea/*
+target/
+*.iml
+i18n/i18ngettext/*
+*.po
+bin
+.classpath
+.project
+
+# Code Quality
+code_quality_service/
+
+# NodeJS Dependencies
+/test/node_modules
+
+# Visualization
+commands/env/
+visualization/graph-db/
+
+# Artillery report
+outputFile.json
