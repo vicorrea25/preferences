@@ -1,4 +1,4 @@
-package com.mercadopago.preferences.utils;
+package com.mercadopago.mytech.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

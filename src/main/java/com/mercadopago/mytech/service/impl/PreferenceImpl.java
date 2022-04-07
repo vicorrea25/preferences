@@ -1,16 +1,18 @@
-package com.mercadopago.preferences.service.impl;
+package com.mercadopago.mytech.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.gson.Gson;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.preferences.auth.Authetication;
-import com.mercadopago.preferences.utils.MapUtils;
+import com.mercadopago.mytech.auth.Authetication;
+import com.mercadopago.mytech.utils.MapUtils;
 import com.mercadopago.resources.Preference;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.springframework.beans.BeanUtils;
 import spark.Request;
 import spark.Response;
 import java.util.*;
+
+import static com.mercadopago.mytech.utils.ReturnUtils.setReturn;
 
 
 public class PreferenceImpl {
@@ -28,14 +30,15 @@ public class PreferenceImpl {
 
 
     public String create(Request request, Response response) throws Exception {
-
+        // ver formas do de para
+        // generics
         Map<String, Object> preferenceMap = MapUtils.getRequestMap(request);
         String credentials = Authetication.getAuth(request);
         Preference preferenceEntity = (Preference) MapUtils.hashMapToObject(preferenceMap, Preference.class);
         preferenceEntity.setMarketplaceAccessToken(credentials);
         Preference savedPreference = savePreference(preferenceEntity);
 
-        setReturn(savedPreference, response);
+        setReturn(savedPreference, response, HttpStatus.SC_CREATED);
 
         return response.body();
 
@@ -58,20 +61,12 @@ public class PreferenceImpl {
         }
 
         preference.setMarketplaceAccessToken(Authetication.getAuth(request));
-        setReturn(getPreferenceById(id), response);
+        setReturn(getPreferenceById(id), response, HttpStatus.SC_OK);
 
         return response.body();
     }
 
-    private void setReturn(Preference preferenceEntity, Response response) throws JsonProcessingException {
-        Gson json = new Gson();
 
-        response.body(json.toJson(preferenceEntity));
-        response.type("application/json");
-
-//        //deixar mais generico
-//        response.status(200);
-    }
 
     public Object update(Request request, Response response) throws Exception {
         Map<String, Object> preferenceMap = MapUtils.getRequestMap(request);
@@ -81,7 +76,7 @@ public class PreferenceImpl {
 
         Preference updatedPreference = updatePreference(preferenceEntity, request);
 
-        setReturn(updatedPreference, response);
+        setReturn(updatedPreference, response, HttpStatus.SC_OK);
 
         return response.body();
     }
@@ -98,7 +93,7 @@ public class PreferenceImpl {
             BeanUtils.copyProperties(preferenceChanged, savedPreference, "idempotenceKey");
             return savedPreference.update();
         }
-
+        // validar como nao encontrado
         return new Preference();
     }
 }

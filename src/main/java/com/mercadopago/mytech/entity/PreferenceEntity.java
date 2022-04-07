@@ -1,4 +1,4 @@
-package com.mercadopago.preferences.entity;
+package com.mercadopago.mytech.entity;
 
 import com.mercadopago.resources.datastructures.preference.*;
 import lombok.AllArgsConstructor;

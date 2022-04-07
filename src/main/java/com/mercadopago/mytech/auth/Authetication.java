@@ -1,4 +1,4 @@
-package com.mercadopago.preferences.auth;
+package com.mercadopago.mytech.auth;
 
 import com.mercadopago.MercadoPago;
 import com.mercadopago.core.MPCredentials;
@@ -11,6 +11,7 @@ public class Authetication {
     public static String getAuth(Request request) throws MPException {
         String clientId = request.headers("clientId");
         String clientSecret = request.headers("clientSecret");
+
 
         if(StringUtils.isBlank(clientId) || StringUtils.isBlank(clientSecret)) {
             throw new RuntimeException("credenciais nao informadas. Informar clientId e clientSecret");

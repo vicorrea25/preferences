@@ -1,4 +1,4 @@
-package com.mercadopago.preferences.route;
+package com.mercadopago.mytech.route;
 
 import spark.Request;
 import spark.Response;

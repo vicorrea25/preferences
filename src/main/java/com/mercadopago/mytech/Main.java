@@ -1,6 +1,6 @@
-package com.mercadopago.preferences;
+package com.mercadopago.mytech;
 
-import com.mercadopago.preferences.route.Routes;
+import com.mercadopago.mytech.route.Routes;
 import spark.Spark;
 
 import static spark.Spark.get;
